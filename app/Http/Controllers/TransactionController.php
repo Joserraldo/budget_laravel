@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\Repositories\TransactionRepositoryInterface;
 use App\Models\Space;
 use App\Models\Tag;
 use App\Repositories\CurrencyRepository;
 use App\Repositories\RecurringRepository;
-use App\Repositories\TransactionRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,15 +14,18 @@ class TransactionController extends Controller
 {
     private $currencyRepository;
     private $recurringRepository;
+    private $tagRepository;
 
     public function __construct(
-        TransactionRepository $transactionRepository,
+        TransactionRepositoryInterface $transactionRepository,
         CurrencyRepository $currencyRepository,
-        RecurringRepository $recurringRepository
+        RecurringRepository $recurringRepository,
+        TagRepository $tagRepository
     ) {
         $this->repository = $transactionRepository;
         $this->currencyRepository = $currencyRepository;
         $this->recurringRepository = $recurringRepository;
+        $this->tagRepository = $tagRepository;
     }
 
     public function index(Request $request)
@@ -35,7 +38,7 @@ class TransactionController extends Controller
 
         return view('transactions.index', [
             'yearMonths' => $this->repository->getTransactionsByYearMonth($filterBy),
-            'tags' => Tag::query()->where('space_id', session('space_id'))->get(),
+            'tags' => $this->tagRepository->getAllBySpaceId(session('space_id')),
         ]);
     }
 
@@ -43,7 +46,7 @@ class TransactionController extends Controller
     {
         $tags = [];
 
-        foreach (Tag::query()->where('space_id', session('space_id'))->get() as $tag) {
+        foreach ($this->tagRepository->getAllBySpaceId(session('space_id')) as $tag) {
             $tags[] = [
                 'key' => $tag->id,
                 'label' => '<div class="row"><div class="row__column row__column--compact row__column--middle mr-1"><div style="width: 15px; height: 15px; border-radius: 2px; background: #' . $tag->color . ';"></div></div><div class="row__column row__column--middle">' . $tag->name . '</div></div>' // phpcs:ignore

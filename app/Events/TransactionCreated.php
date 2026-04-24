@@ -16,30 +16,17 @@ class TransactionCreated
     use InteractsWithSockets;
     use SerializesModels;
 
+    public $transaction;
+    public $userId;
+
     public function __construct($transaction)
     {
-        $userId = null;
+        $this->transaction = $transaction;
 
         if (Auth::check()) {
-            $userId = Auth::user()->id;
+            $this->userId = Auth::user()->id;
         } elseif (request()->get('apiKey')) {
-            $userId = request()->get('apiKey')->user_id;
+            $this->userId = request()->get('apiKey')->user_id;
         }
-
-        if ($transaction instanceof Earning) {
-            $entityType = 'earning';
-        }
-
-        if ($transaction instanceof Spending) {
-            $entityType = 'spending';
-        }
-
-        Activity::create([
-            'space_id' => $transaction->space_id,
-            'user_id' => $userId,
-            'entity_id' => $transaction->id,
-            'entity_type' => $entityType,
-            'action' => 'transaction.created'
-        ]);
     }
 }

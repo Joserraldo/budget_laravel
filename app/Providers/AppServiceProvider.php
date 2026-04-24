@@ -33,5 +33,9 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->bind(DebtRepository::class, ORMDebtRepository::class);
+        $this->app->bind(
+            \App\Contracts\Repositories\TransactionRepositoryInterface::class,
+            \App\Repositories\TransactionRepository::class
+        );
     }
 }

@@ -43,16 +43,23 @@ class DashboardRepository
         $balanceTick = 0;
         $dailyBalance = [];
 
-        for ($i = 1; $i <= $daysInMonth; $i++) {
-            $balanceTick -= Spending::query()
-                ->where('space_id', $spaceId)
-                ->where('happened_on', $year . '-' . $month . '-' . $i)
-                ->sum('amount');
+        $spendings = Spending::query()
+            ->where('space_id', $spaceId)
+            ->whereRaw('YEAR(happened_on) = ? AND MONTH(happened_on) = ?', [$year, $month])
+            ->selectRaw('DAY(happened_on) as day, SUM(amount) as total')
+            ->groupBy('day')
+            ->pluck('total', 'day');
 
-            $balanceTick += Earning::query()
-                ->where('space_id', $spaceId)
-                ->where('happened_on', $year . '-' . $month . '-' . $i)
-                ->sum('amount');
+        $earnings = Earning::query()
+            ->where('space_id', $spaceId)
+            ->whereRaw('YEAR(happened_on) = ? AND MONTH(happened_on) = ?', [$year, $month])
+            ->selectRaw('DAY(happened_on) as day, SUM(amount) as total')
+            ->groupBy('day')
+            ->pluck('total', 'day');
+
+        for ($i = 1; $i <= $daysInMonth; $i++) {
+            $balanceTick -= $spendings->get($i, 0);
+            $balanceTick += $earnings->get($i, 0);
 
             $dailyBalance[$i] = Helper::formatNumber($balanceTick / 100);
         }

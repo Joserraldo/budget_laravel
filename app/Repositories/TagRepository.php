@@ -21,6 +21,11 @@ class TagRepository
         return Tag::find($id);
     }
 
+    public function getAllBySpaceId(int $spaceId)
+    {
+        return Tag::query()->where('space_id', $spaceId)->get();
+    }
+
     public function getMostExpensiveTags(
         int $spaceId,
         int $limit = null,

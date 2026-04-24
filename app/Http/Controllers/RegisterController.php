@@ -18,13 +18,22 @@ class RegisterController extends Controller
 {
     private $spaceRepository;
     private $loginAttemptRepository;
+    private $createUserAction;
+    private $sendVerificationMailAction;
+    private $storeSpaceInSessionAction;
 
     public function __construct(
         SpaceRepository $spaceRepository,
-        LoginAttemptRepository $loginAttemptRepository
+        LoginAttemptRepository $loginAttemptRepository,
+        CreateUserAction $createUserAction,
+        SendVerificationMailAction $sendVerificationMailAction,
+        StoreSpaceInSessionAction $storeSpaceInSessionAction
     ) {
         $this->spaceRepository = $spaceRepository;
         $this->loginAttemptRepository = $loginAttemptRepository;
+        $this->createUserAction = $createUserAction;
+        $this->sendVerificationMailAction = $sendVerificationMailAction;
+        $this->storeSpaceInSessionAction = $storeSpaceInSessionAction;
     }
 
     public function index()
@@ -46,17 +55,17 @@ class RegisterController extends Controller
 
         $request->validate(User::getValidationRulesForRegistration());
 
-        $user = (new CreateUserAction())->execute($request->name, $request->email, $request->password);
+        $user = $this->createUserAction->execute($request->name, $request->email, $request->password);
         $space = $this->spaceRepository->create($request->currency, $user->name . '\'s Space');
         $user->spaces()->attach($space->id, ['role' => 'admin']);
 
-        (new SendVerificationMailAction())->execute($user->id);
+        $this->sendVerificationMailAction->execute($user->id);
 
         Auth::loginUsingId($user->id);
 
         $this->loginAttemptRepository->create($user->id, $request->ip(), false);
 
-        (new StoreSpaceInSessionAction())->execute($user->spaces[0]->id);
+        $this->storeSpaceInSessionAction->execute($user->spaces[0]->id);
 
         return redirect()
             ->route('dashboard');

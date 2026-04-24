@@ -11,6 +11,6 @@ class ResetPasswordTest extends TestCase
     {
         $mailable = new ResetPassword('123456789');
 
-        $mailable->assertSeeInHtml('<a href="' . config('app.url') . '/reset_password?token=123456789">Click here to change your password</a>', false); // phpcs:ignore
+        $mailable->assertSeeInHtml('<a href="' . config('app.url') . '/reset_password?token=123456789">Click aquí para cambiar la contraseña.</a>', false); // phpcs:ignore
     }
 }

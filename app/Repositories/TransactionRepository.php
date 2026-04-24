@@ -2,12 +2,13 @@
 
 namespace App\Repositories;
 
+use App\Contracts\Repositories\TransactionRepositoryInterface;
 use App\Helper;
 use App\Models\Earning;
 use App\Models\Spending;
 use Carbon\Carbon;
 
-class TransactionRepository
+class TransactionRepository implements TransactionRepositoryInterface
 {
     public function getWeeklyBalance(string $year): array
     {
